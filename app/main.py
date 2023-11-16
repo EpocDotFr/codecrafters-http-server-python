@@ -1,16 +1,14 @@
-# Uncomment this to pass the first stage
-# import socket
+from app.handler import HTTPHandler
+from app.server import HTTPServer
 
 
-def main():
-    # You can use print statements as follows for debugging, they'll be visible when running tests.
-    print("Logs from your program will appear here!")
-
-    # Uncomment this to pass the first stage
-    #
-    # server_socket = socket.create_server(("localhost", 4221), reuse_port=True)
-    # server_socket.accept() # wait for client
+def main() -> None:
+    with HTTPServer(('127.0.0.1', 4221), HTTPHandler) as server:
+        try:
+            server.serve_forever()
+        except KeyboardInterrupt:
+            pass
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
