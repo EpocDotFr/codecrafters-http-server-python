@@ -4,4 +4,4 @@ Source code of my solution to the CodeCrafters' "[Build Your Own HTTP server](ht
 challenge.
 
 I've put myself a personal challenge: do not use any third-party packages (only use built-in Python features). As Python
-has a built-in HTTP server, it would be too easy. I did not use it neither.
+has a built-in HTTP server and facilities (e.g URL parsing), it would be too easy. I did not use these neither.
