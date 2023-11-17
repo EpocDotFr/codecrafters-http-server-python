@@ -131,6 +131,10 @@ class HTTPHandler(StreamRequestHandler):
 
         if request.url.path == '/':
             self.send(HTTPResponse(200, 'OK', b'', response_headers))
+        if request.url.path == '/user-agent':
+            response_headers['Content-Type'] = 'text/plain'
+
+            self.send(HTTPResponse(200, 'OK', request.headers.get('User-Agent').encode(), response_headers))
         elif request.url.path.startswith('/echo/'):
             response_headers['Content-Type'] = 'text/plain'
 
