@@ -36,9 +36,14 @@ class HTTPHandler(StreamRequestHandler):
         self.write_line('')
 
     def handle(self) -> None:
-        request = self.receive()
+        method, target, version, headers = self.receive()
 
-        self.send()
+        print(method, target, version, headers)
+
+        if target == '/':
+            self.send()
+        else:
+            self.send(404, 'Not found')
 
     def read_line(self) -> Optional[str]:
         line = self.rfile.readline().decode('utf-8')
