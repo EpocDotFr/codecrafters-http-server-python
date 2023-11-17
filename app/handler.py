@@ -9,6 +9,7 @@ HTTPRequest = namedtuple('HTTPRequest', [
     'method',
     'url',
     'version',
+    'body',
     'headers',
 ])
 
@@ -44,7 +45,9 @@ class HTTPHandler(StreamRequestHandler):
 
         headers = self.receive_headers()
 
-        return HTTPRequest(method, url, version, headers)
+        body = self.receive_body(headers)
+
+        return HTTPRequest(method, url, version, body, headers)
 
     def receive_start_line(self) -> Optional[Tuple[str, URL, str]]:
         start_line = self.read_line()
@@ -104,6 +107,14 @@ class HTTPHandler(StreamRequestHandler):
 
         return headers
 
+    def receive_body(self, headers: Dict) -> bytes:
+        content_length = headers.get('Content-Length', 0)
+
+        if not content_length:
+            return b''
+
+        return self.rfile.read(int(content_length))
+
     def send(self, response: HTTPResponse) -> None:
         print(f'< {response.status_code} {response.status_text}\n')
 
@@ -130,13 +141,13 @@ class HTTPHandler(StreamRequestHandler):
             'Connection': 'Close'
         }
 
-        if request.url.path == '/':
+        if request.url.path == '/' and request.method == 'GET':
             self.send(HTTPResponse(200, 'OK', b'', response_headers))
-        if request.url.path == '/user-agent':
+        if request.url.path == '/user-agent' and request.method == 'GET':
             response_headers['Content-Type'] = 'text/plain'
 
             self.send(HTTPResponse(200, 'OK', request.headers.get('User-Agent').encode(), response_headers))
-        elif request.url.path.startswith('/echo/'):
+        elif request.url.path.startswith('/echo/') and request.method == 'GET':
             response_headers['Content-Type'] = 'text/plain'
 
             self.send(HTTPResponse(200, 'OK', request.url.path[6:].encode(), response_headers))
@@ -144,15 +155,25 @@ class HTTPHandler(StreamRequestHandler):
             directory = self.server.config.get('directory')
 
             if directory:
-                filename = os.path.join(directory, request.url.path[7:])
+                if request.method == 'GET':
+                    filename = os.path.join(directory, request.url.path[7:])
 
-                if os.path.isfile(filename):
-                    response_headers['Content-Type'] = 'application/octet-stream'
+                    if os.path.isfile(filename):
+                        response_headers['Content-Type'] = 'application/octet-stream'
 
-                    with open(filename, 'rb') as f:
-                        body = f.read()
+                        with open(filename, 'rb') as f:
+                            body = f.read()
 
-                    self.send(HTTPResponse(200, 'OK', body, response_headers))
+                        self.send(HTTPResponse(200, 'OK', body, response_headers))
+
+                        return
+                elif request.method == 'POST':
+                    filename = os.path.join(directory, request.url.path[7:])
+
+                    with open(filename, 'wb') as f:
+                        f.write(request.body)
+
+                    self.send(HTTPResponse(201, 'Created', b'', response_headers))
 
                     return
 
@@ -163,7 +184,7 @@ class HTTPHandler(StreamRequestHandler):
     def read_line(self) -> Optional[str]:
         line = self.rfile.readline().decode()
 
-        return line.strip() if line else None
+        return line.rstrip('\r\n') if line else None
 
     def write_line(self, line: str) -> None:
         self.wfile.write(f'{line}\r\n'.encode())
