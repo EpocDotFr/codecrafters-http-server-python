@@ -14,6 +14,8 @@ HTTPRequest = namedtuple('HTTPRequest', [
 HTTPResponse = namedtuple('HTTPResponse', [
     'status_code',
     'status_text',
+    'body',
+    'headers',
 ])
 
 URL = namedtuple('URL', [
@@ -105,22 +107,44 @@ class HTTPHandler(StreamRequestHandler):
         print(f'< {response.status_code} {response.status_text}\n')
 
         self.write_line(f'HTTP/1.1 {response.status_code} {response.status_text}')
+
+        response_headers = response.headers.copy()
+
+        if response.body:
+            response_headers['Content-Length'] = len(response.body)
+
+        for key, value in response_headers.items():
+            self.write_line(f'{key}: {value}')
+
         self.write_line('')
+
+        self.write_body(response.body)
 
     def handle(self) -> None:
         request = self.receive()
 
         print(f'> {request.version} {request.method} {request.url} {request.headers}')
 
+        response_headers = {
+            'Connection': 'Close'
+        }
+
         if request.url.path == '/':
-            self.send(HTTPResponse(200, 'OK'))
+            self.send(HTTPResponse(200, 'OK', b'', response_headers))
+        elif request.url.path.startswith('/echo/'):
+            response_headers['Content-Type'] = 'text/plain'
+
+            self.send(HTTPResponse(200, 'OK', request.url.path[6:].encode(), response_headers))
         else:
-            self.send(HTTPResponse(404, 'Not found'))
+            self.send(HTTPResponse(404, 'Not found', b'', response_headers))
 
     def read_line(self) -> Optional[str]:
-        line = self.rfile.readline().decode('utf-8')
+        line = self.rfile.readline().decode()
 
         return line.strip() if line else None
 
     def write_line(self, line: str) -> None:
         self.wfile.write(f'{line}\r\n'.encode())
+
+    def write_body(self, body: bytes = b'') -> None:
+        self.wfile.write(body)
