@@ -1,4 +1,4 @@
-[![progress-banner](https://app.codecrafters.io/progress/http-server/f399034c-05cd-4b5b-bf05-e1072ecdae40)](https://app.codecrafters.io/users/EpocDotFr)
+[![progress-banner](https://app.codecrafters.io/progress/http-server/81d2c0cb-d97e-4943-a1b7-d4f1c6abc63e)](https://app.codecrafters.io/users/EpocDotFr)
 
 Source code of my solution to the CodeCrafters' "[Build Your Own HTTP server](https://codecrafters.io/challenges/http-server)"
 challenge.
