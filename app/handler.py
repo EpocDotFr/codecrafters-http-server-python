@@ -1,33 +1,9 @@
+from app.custom_types import URL, HTTPRequest, HTTPResponse
 from socketserver import StreamRequestHandler
 from typing import Optional, Tuple, Dict
-from collections import namedtuple
 from app.server import HTTPServer
 import re
 import os
-
-HTTPRequest = namedtuple('HTTPRequest', [
-    'method',
-    'url',
-    'version',
-    'body',
-    'headers',
-])
-
-HTTPResponse = namedtuple('HTTPResponse', [
-    'status_code',
-    'status_text',
-    'body',
-    'headers',
-])
-
-URL = namedtuple('URL', [
-    'scheme',
-    'domain',
-    'port',
-    'path',
-    'query',
-    'fragment',
-])
 
 URL_REGEX = re.compile(r'(?:(?P<scheme>[a-z0-9.]+)(?:://)?)?(?P<domain>[a-z.-]+)?(?::(?P<port>[0-9]+))?(?P<path>.[^?#\s]*)(?:\?(?P<query>.[^#\s]*))?(?:#(?P<fragment>.+))?')
 
