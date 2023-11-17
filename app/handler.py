@@ -3,6 +3,7 @@ from typing import Optional, Tuple, Dict
 from collections import namedtuple
 from app.server import HTTPServer
 import re
+import os
 
 HTTPRequest = namedtuple('HTTPRequest', [
     'method',
@@ -139,6 +140,23 @@ class HTTPHandler(StreamRequestHandler):
             response_headers['Content-Type'] = 'text/plain'
 
             self.send(HTTPResponse(200, 'OK', request.url.path[6:].encode(), response_headers))
+        elif request.url.path.startswith('/files/'):
+            directory = self.server.config.get('directory')
+
+            if directory:
+                filename = os.path.join(directory, request.url.path[7:])
+
+                if os.path.isfile(filename):
+                    response_headers['Content-Type'] = 'application/octet-stream'
+
+                    with open(filename, 'rb') as f:
+                        body = f.read()
+
+                    self.send(HTTPResponse(200, 'OK', body, response_headers))
+
+                    return
+
+            self.send(HTTPResponse(404, 'Not found', b'', response_headers))
         else:
             self.send(HTTPResponse(404, 'Not found', b'', response_headers))
 
