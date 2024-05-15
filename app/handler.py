@@ -159,9 +159,9 @@ class HTTPHandler(StreamRequestHandler):
 
                     return
 
-            self.send(HTTPResponse(404, 'Not found', b'', response_headers))
+            self.send(HTTPResponse(404, 'Not Found', b'', response_headers))
         else:
-            self.send(HTTPResponse(404, 'Not found', b'', response_headers))
+            self.send(HTTPResponse(404, 'Not Found', b'', response_headers))
 
     def read_line(self) -> Optional[str]:
         line = self.rfile.readline().decode()
