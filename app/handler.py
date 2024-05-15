@@ -129,7 +129,7 @@ class HTTPHandler(StreamRequestHandler):
         elif request.url.path.startswith('/echo/') and request.method == 'GET':
             response_headers['Content-Type'] = 'text/plain'
 
-            if request.headers.get('Accept-Encoding') == 'gzip':
+            if 'gzip' in request.headers.get('Accept-Encoding', ''):
                 response_headers['Content-Encoding'] = 'gzip'
 
             self.send(HTTPResponse(200, 'OK', request.url.path[6:].encode(), response_headers))
