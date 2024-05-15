@@ -135,7 +135,7 @@ class HTTPHandler(StreamRequestHandler):
             if 'gzip' in request.headers.get('Accept-Encoding', ''):
                 response_headers['Content-Encoding'] = 'gzip'
 
-                body = gzip.compress(random_string).hex().encode()
+                body = gzip.compress(random_string)
             else:
                 body = random_string
 
