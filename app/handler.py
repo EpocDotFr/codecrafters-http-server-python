@@ -11,11 +11,11 @@ URL_REGEX = re.compile(r'(?:(?P<scheme>[a-z0-9.]+)(?:://)?)?(?P<domain>[a-z.-]+)
 class HTTPHandler(StreamRequestHandler):
     server: HTTPServer
 
-    def receive(self) -> HTTPRequest:
+    def receive(self) -> Optional[HTTPRequest]:
         start_line = self.receive_start_line()
 
         if not start_line:
-            return
+            return None
 
         method, url, version = start_line
 
@@ -111,6 +111,9 @@ class HTTPHandler(StreamRequestHandler):
     def handle(self) -> None:
         request = self.receive()
 
+        if not request:
+            return
+
         print(f'> {request.version} {request.method} {request.url} {request.headers}')
 
         response_headers = {
@@ -125,6 +128,9 @@ class HTTPHandler(StreamRequestHandler):
             self.send(HTTPResponse(200, 'OK', request.headers.get('User-Agent').encode(), response_headers))
         elif request.url.path.startswith('/echo/') and request.method == 'GET':
             response_headers['Content-Type'] = 'text/plain'
+
+            if request.headers.get('Accept-Encoding') == 'gzip':
+                response_headers['Content-Encoding'] = 'gzip'
 
             self.send(HTTPResponse(200, 'OK', request.url.path[6:].encode(), response_headers))
         elif request.url.path.startswith('/files/'):
