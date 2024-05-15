@@ -2,6 +2,7 @@ from app.custom_types import URL, HTTPRequest, HTTPResponse
 from socketserver import StreamRequestHandler
 from typing import Optional, Tuple, Dict
 from app.server import HTTPServer
+import gzip
 import re
 import os
 
@@ -129,10 +130,16 @@ class HTTPHandler(StreamRequestHandler):
         elif request.url.path.startswith('/echo/') and request.method == 'GET':
             response_headers['Content-Type'] = 'text/plain'
 
+            random_string = request.url.path[6:].encode()
+
             if 'gzip' in request.headers.get('Accept-Encoding', ''):
                 response_headers['Content-Encoding'] = 'gzip'
 
-            self.send(HTTPResponse(200, 'OK', request.url.path[6:].encode(), response_headers))
+                body = gzip.compress(random_string).hex()
+            else:
+                body = random_string
+
+            self.send(HTTPResponse(200, 'OK', body, response_headers))
         elif request.url.path.startswith('/files/'):
             directory = self.server.config.get('directory')
 
